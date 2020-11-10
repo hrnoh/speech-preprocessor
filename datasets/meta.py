@@ -17,28 +17,29 @@ def build_from_path(hparams, in_dir, out_dir, num_workers=16):
 
     executor = ProcessPoolExecutor(max_workers=num_workers)
 
-    spk_paths = [p for p in glob.glob(os.path.join(in_dir, "*")) if os.path.isdir(p)]
+    #spk_paths = [p for p in glob.glob(os.path.join(in_dir, "*")) if os.path.isdir(p) and os.path.basename(p) in hparams.used_spks]
     #files_path = glob.glob(os.path.join(data_root, '**/*.wav')) # 경로 부분은 알아서 자기 상황에 맞춰서 바꾸어야 함
+    with open(os.path.join(in_dir, "metadata.csv"), 'rt') as f:
+        all_meta = [row.rstrip() for row in f.readlines()]
 
     mel_gen = Audio2Mel(hparams)
 
     os.makedirs(out_dir, exist_ok=True)
 
-
+    pbar = pkbar.Pbar(name='loading and processing dataset', target=len(all_meta))
     futures = []
-    for i, spk_path in enumerate(spk_paths):
-        spk_name = os.path.basename(spk_path)
-        all_wav_path = glob.glob(os.path.join(spk_path, '*.wav'))
-
-        pbar = pkbar.Pbar(name='loading and processing dataset', target=len(all_wav_path))
+    for i, row in enumerate(all_meta):
+        wav_path, text, spk_label, spk_name = row.split('|')
+        full_path = os.path.join(in_dir, wav_path)
 
         # make speaker directory
         os.makedirs(os.path.join(out_dir, spk_name), exist_ok=True)
-        for j, wav_path in enumerate(all_wav_path):
-            wav_name = os.path.basename(wav_path)
-            npz_name = os.path.join(out_dir, spk_name, wav_name[:-4] + ".npz")
 
-            futures.append(executor.submit(partial(_processing_data, hparams, wav_path, i, npz_name, mel_gen, pbar, j)))
+
+        wav_name = os.path.basename(wav_path)
+        npz_name = os.path.join(out_dir, spk_name, wav_name[:-4] + ".npz")
+
+        futures.append(executor.submit(partial(_processing_data, hparams, full_path, text, spk_label, npz_name, mel_gen, pbar, i)))
 
     results = [future.result() for future in futures if future.result() is not None]
 
@@ -52,7 +53,7 @@ def build_from_path(hparams, in_dir, out_dir, num_workers=16):
     print('Finish Preprocessing')
 
 
-def _processing_data(hparams, full_path, spk_label, npz_name, mel_gen, pbar, i):
+def _processing_data(hparams, full_path, text, spk_label, npz_name, mel_gen, pbar, i):
 
     if os.path.isfile(full_path):
         wav = load_audio(full_path, hparams)
@@ -65,6 +66,7 @@ def _processing_data(hparams, full_path, spk_label, npz_name, mel_gen, pbar, i):
 
     data = {}
     data['audio'] = wav
+    data['tokens'] = text_to_sequence(text)
     data['mel'] = mel.T
     data['spk_label'] = spk_label
 

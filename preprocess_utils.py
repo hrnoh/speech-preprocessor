@@ -44,8 +44,12 @@ class Audio2Mel(nn.Module):
         real_part, imag_part = fft.unbind(-1)
         magnitude = torch.sqrt(real_part ** 2 + imag_part ** 2)
         mel_output = torch.matmul(self.mel_basis, magnitude)
-        #log_mel_spec = torch.log10(torch.clamp(mel_output, min=1e-2)).squeeze()
-        log_mel_spec = self.dynamic_range_compression(mel_output, eps=hparams.eps).squeeze()
+
+        if hparams.dynamic_range_compression:
+            log_mel_spec = self.dynamic_range_compression(mel_output, eps=hparams.eps).squeeze()
+        else:
+            log_mel_spec = torch.log10(torch.clamp(mel_output, min=1e-2)).squeeze()
+
         return log_mel_spec
 
     def dynamic_range_compression(self, x, eps=0.0001):

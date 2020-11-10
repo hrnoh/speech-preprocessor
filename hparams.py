@@ -8,13 +8,13 @@ hparams = tf.contrib.training.HParams(
     use_phoneme = True,
 
     # Audio
-    sample_rate = 24000,  # original : 22050
+    sample_rate = 22050,  # original : 22050
     
     # shift can be specified by either hop_size or frame_shift_ms
-    hop_size = 300,    # frame_shift_ms = 12.5ms, original = 256
-    fft_size = 2048,   # original = 1024
-    win_size = 1200,   # 50ms, original = 1024
-    num_mels = 128,     # original = 1024
+    hop_size = 256,    # frame_shift_ms = 12.5ms, original = 256
+    fft_size = 1024,   # original = 1024
+    win_size = 1024,   # 50ms, original = 1024
+    num_mels = 80,     # original = 1024
 
     #Spectrogram Pre-Emphasis (Lfilter: Reduce spectrogram noise and helps model certitude levels. Also allows for better G&L phase reconstruction)
     preemphasize = False, #whether to apply filter
@@ -27,6 +27,7 @@ hparams = tf.contrib.training.HParams(
     # symmetric_mels = True, #Whether to scale the data to be symmetric around 0. (Also multiplies the output range by 2, faster and cleaner convergence)
     # max_abs_value = 1., #max absolute value of data. If symmetric, data will be [-max, max] else [0, max] (Must not be too big to avoid gradient explosion, not too small for fast convergence)
 
+    dynamic_range_compression = False,
     eps = 0.0001, # for dynamic range compression
         
     rescaling=True,
@@ -40,8 +41,8 @@ hparams = tf.contrib.training.HParams(
     
     
     # mel-basis parameters
-    fmin = 20,      # original = 55
-    fmax = 12000,    # original = 7600
+    fmin = 55, #20,      # original = 55
+    fmax = 7600, #12000,    # original = 7600
  
 )
 

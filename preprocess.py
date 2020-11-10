@@ -32,7 +32,7 @@ if __name__ == "__main__":
     if not args.num_workers:
         args.num_workers = cpu_count()
 
-    assert args.name in ["NIKL"]
+    assert args.name in ["no_meta", 'meta']
     mod = importlib.import_module('datasets.{}'.format(args.name))
 
     print("---------------------------------- Preprecessing starts! ----------------------------------")
