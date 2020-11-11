@@ -18,7 +18,7 @@ def build_from_path(root, spk_emb_path):
     with open(spk_emb_path, 'rb') as f:
         spk_meta = pickle.load(f)
 
-    all_spk_path = [p for p in glob.glob(os.path.join(root, '*')) if os.path.isdir(p)]
+    all_spk_path = [p for p in glob.glob(os.path.join(root, '**/*')) if os.path.isdir(p)]
     for spk_path in all_spk_path:
         spk_name = os.path.basename(spk_path)
         spk_emb = None
@@ -49,8 +49,8 @@ def _add_spk_emb(npz_path, spk_emb, pbar, i):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--root', type=str, default='/hd0/korean_seq2seq_vc/preprocessed/ActorClassScandle/')
-    parser.add_argument('--spk_emb_path', type=str, default='/sd0/git/speaker_verification')
+    parser.add_argument('--root', type=str, default='/hd0/speech-preprocessor/')
+    parser.add_argument('--spk_emb_path', type=str, default='/sd0/git/speaker_verification/metadata_korean_all.pkl')
     args = parser.parse_args()
 
     build_from_path(args.root, args.spk_emb_path)
